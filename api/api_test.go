@@ -3,6 +3,7 @@ package api
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"io"
 	"log"
 	"net/http"
@@ -44,6 +45,10 @@ func TestMain(m *testing.M) {
 	defer Server.Close()
 
 	code := m.Run()
+	err = os.Remove(file)
+	if err != nil {
+		fmt.Printf("Error removing test file: %v\n", err)
+	}
 	os.Exit(code)
 }
 

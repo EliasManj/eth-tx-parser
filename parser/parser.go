@@ -127,12 +127,22 @@ func (s *MyParser) ProcessBlock(blockNumber int64, endpoint string) {
 				GasPrice:    tx["gasPrice"].(string),
 				Nonce:       tx["nonce"].(string),
 			}
-
-			details.Transactions = append(details.Transactions, txDetails)
+			if !s.transactionExists(details.Transactions, txDetails.Txhash) {
+				details.Transactions = append(details.Transactions, txDetails)
+			}
 			fmt.Printf("Transaction found for address %s: %s\n", address, txHash)
 		}
 		s.mu.Unlock()
 	}
+}
+
+func (s *MyParser) transactionExists(transactions []Transaction, txHash string) bool {
+	for _, tx := range transactions {
+		if tx.Txhash == txHash {
+			return true
+		}
+	}
+	return false
 }
 
 func (s *MyParser) Loop(ctx context.Context, endpoint string, saveFile string) {
