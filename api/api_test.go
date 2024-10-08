@@ -1,6 +1,7 @@
 package api
 
 import (
+	"context"
 	"encoding/json"
 	"io"
 	"log"
@@ -24,7 +25,9 @@ var (
 func TestMain(m *testing.M) {
 	var err error
 	url := "http://localhost:8545"
-	parser.Init(url)
+	file := "testdata.json"
+	ctx := context.Background()
+	parser.Init(ctx, url, file)
 	Accounts, err = rpcclient.AnvilGetAccounts(url)
 	if err != nil {
 		log.Fatalf("Error getting accounts: %v", err)

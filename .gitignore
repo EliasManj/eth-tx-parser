@@ -26,6 +26,7 @@ go.work.sum
 
 # storage
 data.json
+testdata.json
 
 # vscode
 .vscode
