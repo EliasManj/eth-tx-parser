@@ -45,6 +45,7 @@ func main() {
 
 	storage := &parser.JsonFileStorage{
 		FilePath: *filename,
+		Endpoint: *rpcURL,
 	}
 
 	fmt.Println("Server is running on port 8082...")

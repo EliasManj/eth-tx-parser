@@ -14,6 +14,12 @@ type Storage interface {
 
 type JsonFileStorage struct {
 	FilePath string
+	Endpoint string
+}
+
+type EndpointData struct {
+	LatestBlockNumber   int64                           `json:"latestBlockNumber"`
+	SubscribedAddresses map[string]*AddressTransactions `json:"subscribedAddresses"`
 }
 
 var _ Storage = &JsonFileStorage{}
@@ -23,12 +29,17 @@ func (s *JsonFileStorage) Display() string {
 }
 
 func (s *JsonFileStorage) Save(subscribedAddresses map[string]*AddressTransactions, latestBlockNumber int64) error {
-	data := map[string]interface{}{
-		"latestBlockNumber":   latestBlockNumber,
-		"subscribedAddresses": subscribedAddresses,
+	existingData, err := s.loadAll()
+	if err != nil && !os.IsNotExist(err) {
+		return fmt.Errorf("failed to load existing data: %v", err)
 	}
 
-	jsonData, err := json.MarshalIndent(data, "", "  ")
+	existingData[s.Endpoint] = EndpointData{
+		LatestBlockNumber:   latestBlockNumber,
+		SubscribedAddresses: subscribedAddresses,
+	}
+
+	jsonData, err := json.MarshalIndent(existingData, "", "  ")
 	if err != nil {
 		return fmt.Errorf("failed to marshal data: %v", err)
 	}
@@ -38,30 +49,42 @@ func (s *JsonFileStorage) Save(subscribedAddresses map[string]*AddressTransactio
 		return fmt.Errorf("failed to write to file: %v", err)
 	}
 
-	fmt.Println("Data saved to file:", s.FilePath)
+	fmt.Println("Data saved for endpoint:", s.Endpoint)
 	return nil
 }
 
-func (s *JsonFileStorage) Load() (map[string]*AddressTransactions, int64, error) {
-	data, err := os.ReadFile(s.FilePath)
+func (s *JsonFileStorage) loadAll() (map[string]EndpointData, error) {
+	data := make(map[string]EndpointData)
+
+	fileData, err := os.ReadFile(s.FilePath)
 	if err != nil {
 		if os.IsNotExist(err) {
 			fmt.Println("File does not exist, starting fresh")
-			return make(map[string]*AddressTransactions), 0, nil
+			return data, nil
 		}
-		return nil, -1, fmt.Errorf("failed to read file: %v", err)
+		return nil, fmt.Errorf("failed to read file: %v", err)
 	}
 
-	var result struct {
-		LatestBlockNumber   int64                           `json:"latestBlockNumber"`
-		SubscribedAddresses map[string]*AddressTransactions `json:"subscribedAddresses"`
-	}
-
-	err = json.Unmarshal(data, &result)
+	err = json.Unmarshal(fileData, &data)
 	if err != nil {
-		return nil, 0, fmt.Errorf("failed to unmarshal data: %v", err)
+		return nil, fmt.Errorf("failed to unmarshal data: %v", err)
 	}
 
-	fmt.Println("Data loaded from file:", s.FilePath)
-	return result.SubscribedAddresses, result.LatestBlockNumber, nil
+	return data, nil
+}
+
+func (s *JsonFileStorage) Load() (map[string]*AddressTransactions, int64, error) {
+	// Load the entire file data
+	existingData, err := s.loadAll()
+	if err != nil {
+		return nil, 0, err
+	}
+
+	// Filter for the specific endpoint
+	if endpointData, ok := existingData[s.Endpoint]; ok {
+		return endpointData.SubscribedAddresses, endpointData.LatestBlockNumber, nil
+	}
+
+	// If no data exists for this endpoint, return fresh data
+	return make(map[string]*AddressTransactions), 0, nil
 }

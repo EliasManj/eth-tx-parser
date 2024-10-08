@@ -23,7 +23,7 @@ func Init(ctx context.Context, endpoint string, storage Storage, optionalStartFr
 	if len(optionalStartFrom) > 0 {
 		startFrom = optionalStartFrom[0]
 	} else {
-		startFrom = startingBlockNumber.Int64()
+		startFrom = startingBlockNumber.Int64() - 1
 	}
 	db = NewParser(storage, startFrom)
 	go db.Loop(ctx, endpoint)

@@ -3,6 +3,7 @@ package parser
 import (
 	"context"
 	"fmt"
+	"strconv"
 	"sync"
 	"time"
 
@@ -79,7 +80,8 @@ func (s *MyParser) PollLatestBlock(endpoint string) (int64, error) {
 	return blockNumber.Int64(), nil
 }
 
-func (s *MyParser) ProcessBlock(blockNumber int64, endpoint string) {
+func (s *MyParser) ProcessBlock(blockNumber int64, endpoint string) bool {
+	txfound := false
 	for address, details := range s.subscribedAddresses {
 		transactions, err := rpcclient.GetTransactionsByBlockNumber(utils.IntToHex(blockNumber), address, endpoint)
 		if err != nil {
@@ -111,12 +113,14 @@ func (s *MyParser) ProcessBlock(blockNumber int64, endpoint string) {
 				Nonce:       tx["nonce"].(string),
 			}
 			if !s.transactionExists(details.Transactions, txDetails.Txhash) {
+				txfound = true
 				details.Transactions = append(details.Transactions, txDetails)
+				fmt.Printf("Transaction found for address: %s; Hash: %s; Block: %s\n", address, txHash, strconv.FormatInt(blockNumber, 10))
 			}
-			fmt.Printf("Transaction found for address %s: %s\n", address, txHash)
 		}
 		s.mu.Unlock()
 	}
+	return txfound
 }
 
 func (s *MyParser) transactionExists(transactions []Transaction, txHash string) bool {
@@ -144,18 +148,22 @@ func (s *MyParser) Loop(ctx context.Context, endpoint string) {
 			s.Save()
 			return
 		case <-ticker.C:
-			fmt.Println("Looping")
+			txfound := false
+			//fmt.Println("Looping")
 			latestBlockNumber, err := s.PollLatestBlock(endpoint)
 			if err != nil {
 				fmt.Println("Error polling latest block:", err)
 				continue
 			}
 			if latestBlockNumber > s.latestProcessedBlockNumber {
-				for blockNumber := s.latestProcessedBlockNumber; blockNumber <= latestBlockNumber; blockNumber++ {
+				for blockNumber := s.latestProcessedBlockNumber + 1; blockNumber <= latestBlockNumber; blockNumber++ {
+					fmt.Println("Processing block number:", blockNumber)
 					s.latestProcessedBlockNumber = blockNumber
-					s.ProcessBlock(blockNumber, endpoint)
+					txfound = s.ProcessBlock(blockNumber, endpoint)
 				}
-				s.Save()
+				if txfound {
+					s.Save()
+				}
 			}
 		}
 	}
