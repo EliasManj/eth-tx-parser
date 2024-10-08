@@ -105,7 +105,6 @@ go test ./api
 
 **Subscribe to Address**
 
-This endpoint is used to subscribe to a specific address.
 ```
 /subscribe?address=[addres]
 ```
