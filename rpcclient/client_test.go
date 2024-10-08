@@ -51,10 +51,10 @@ func TestAnvilSendWei(t *testing.T) {
 	require.NoError(t, err)
 
 	toSend := 100
-	require.NoError(t, err)
 	txHash, err := AnvilSendWei(acc1, acc2, toSend, URL)
 	require.NoError(t, err)
 	require.NotEmpty(t, txHash)
+	time.Sleep(1 * time.Second)
 
 	newAcc1Balance, err := GetBalance(acc1, URL)
 	require.NoError(t, err)
