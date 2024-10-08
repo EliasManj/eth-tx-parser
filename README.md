@@ -47,6 +47,18 @@ curl -X POST 'https://ethereum-rpc.publicnode.com' --data \
 }
 ```
 
+### Parser parameters
+
+Start parser with specific RPC URl 
+```bash
+go run main.go -url=[rpc url]
+```
+
+Start parser in a specific block number
+```bash
+go run main.go -startblock=[block number]
+```
+
 ### Running locally with Anvil
 
 Start Anvil service
@@ -64,11 +76,6 @@ go run main.go -url="http://localhost:8545"
 Start service using a Sepolia RPC url
 ```bash
 go run main.go -url="https://ethereum-sepolia-rpc.publicnode.com/"
-```
-
-Start parser in a specific block number
-```bash
-go run main.go -url="https://ethereum-sepolia-rpc.publicnode.com/" -startblock=[block number]
 ```
 
 ### Running local unit tests
