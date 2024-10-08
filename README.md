@@ -47,7 +47,7 @@ curl -X POST 'https://ethereum-rpc.publicnode.com' --data \
 }
 ```
 
-### Parser parameters
+## Parser parameters
 
 Start parser with specific RPC URl 
 ```bash
