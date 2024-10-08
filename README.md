@@ -31,8 +31,7 @@ GetTransactions(address string) []Transaction
 URL: https://ethereum-rpc.publicnode.com
 
 Request Example:
-```json
-// Request
+```bash
 curl -X POST 'https://ethereum-rpc.publicnode.com' --data \
 '{
 "jsonrpc": "2.0",
