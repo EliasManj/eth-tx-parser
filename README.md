@@ -93,3 +93,60 @@ go test ./rpcclient
 ```
 go test ./api
 ```
+
+### API endpoints
+
+
+**Get Current Block**
+
+```
+/getCurrentBlock
+```
+
+**Subscribe to Address**
+
+This endpoint is used to subscribe to a specific address.
+```
+/subscribe?address=[addres]
+```
+Request Parameters
+
+* address ((string, required)): The address to subscribe to.
+
+
+**List Subscribed Addresses**
+
+List all address subscriptions.
+```
+/subscribe?address=[addres]
+```
+
+**Get Inbound and Outbound transactions**
+
+List all address subscriptions for the specified address.
+```
+/getTransactions?address=[addres]
+```
+
+Parameters
+
+* address (string, required): The address for which transactions are to be retrieved.
+
+The response is a JSON array containing transaction details. The schema for the response is as follows:
+
+```
+[
+    {
+        "txhash": "",
+        "blockhash": "",
+        "blocknumber": "",
+        "from": "",
+        "to": "",
+        "txtype": "",
+        "gasUsed": "",
+        "blobGasPrice": "",
+        "contractAddress": "",
+        "nonce": ""
+    }
+]
+```

@@ -86,5 +86,5 @@ func (s *JsonFileStorage) Load() (map[string]*AddressTransactions, int64, error)
 	}
 
 	// If no data exists for this endpoint, return fresh data
-	return make(map[string]*AddressTransactions), 0, nil
+	return make(map[string]*AddressTransactions), -1, nil
 }
