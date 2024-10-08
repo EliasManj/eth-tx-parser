@@ -43,6 +43,14 @@ func main() {
 		}
 	}()
 
+	storage := &parser.JsonFileStorage{
+		FilePath: *filename,
+	}
+
+	fmt.Println("Server is running on port 8082...")
+	fmt.Println("Using RPC URL:", *rpcURL)
+	fmt.Println("Using storage:", storage.Display())
+
 	// Initialize the parser
 	if *startFrom != "" {
 		start, err := strconv.ParseInt(*startFrom, 10, 64)
@@ -50,9 +58,10 @@ func main() {
 			fmt.Println("Error parsing start block:", err)
 			return
 		}
-		parser.Init(ctx, *rpcURL, *filename, start)
+		fmt.Println("Starting from block:", start)
+		parser.Init(ctx, *rpcURL, storage, start)
 	} else {
-		parser.Init(ctx, *rpcURL, *filename)
+		parser.Init(ctx, *rpcURL, storage)
 	}
 
 	//parser.Init("http://localhost:8545")
@@ -65,7 +74,6 @@ func main() {
 	http.HandleFunc("/getTransactions", api.GetTransactionsHandler)
 	http.HandleFunc("/getSubscriptions", api.GetSubscriptionsHandler)
 
-	fmt.Println("Server is running on port 8082...")
 	if err := server.ListenAndServe(); err != http.ErrServerClosed {
 		fmt.Println("Failed to start server:", err)
 	}

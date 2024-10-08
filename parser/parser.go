@@ -2,9 +2,7 @@ package parser
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
-	"os"
 	"sync"
 	"time"
 
@@ -33,6 +31,7 @@ type MyParser struct {
 	latestProcessedBlockNumber int64
 	subscribedAddresses        map[string]*AddressTransactions
 	mu                         sync.RWMutex
+	storage                    Storage
 }
 
 type Parser interface {
@@ -48,44 +47,28 @@ type Parser interface {
 
 var _ Parser = &MyParser{}
 
-func (s *MyParser) SaveToFile(filename string) error {
-	s.mu.RLock()
-	defer s.mu.RUnlock()
+func NewParser(storage Storage, startFrom int64) *MyParser {
 
-	data, err := json.MarshalIndent(s.subscribedAddresses, "", "  ")
-	if err != nil {
-		return fmt.Errorf("failed to marshal data: %v", err)
-	}
+	var addresses = make(map[string]*AddressTransactions)
+	var latestBlockNumber int64
+	var err error
 
-	err = os.WriteFile(filename, data, 0644)
-	if err != nil {
-		return fmt.Errorf("failed to write to file: %v", err)
-	}
-
-	fmt.Println("Data saved to file:", filename)
-	return nil
-}
-
-func (s *MyParser) LoadFromFile(filename string) error {
-	s.mu.Lock()
-	defer s.mu.Unlock()
-
-	data, err := os.ReadFile(filename)
-	if err != nil {
-		if os.IsNotExist(err) {
-			fmt.Println("File does not exist, starting fresh")
-			return nil
+	if storage != nil {
+		addresses, latestBlockNumber, err = storage.Load()
+		if err != nil {
+			fmt.Printf("Error loading from storage: %v\n", err)
+			latestBlockNumber = startFrom
 		}
-		return fmt.Errorf("failed to read file: %v", err)
+		if latestBlockNumber == -1 {
+			latestBlockNumber = startFrom
+		}
 	}
 
-	err = json.Unmarshal(data, &s.subscribedAddresses)
-	if err != nil {
-		return fmt.Errorf("failed to unmarshal data: %v", err)
+	return &MyParser{
+		latestProcessedBlockNumber: latestBlockNumber,
+		subscribedAddresses:        addresses,
+		storage:                    storage,
 	}
-
-	fmt.Println("Data loaded from file:", filename)
-	return nil
 }
 
 func (s *MyParser) PollLatestBlock(endpoint string) (int64, error) {
@@ -145,14 +128,20 @@ func (s *MyParser) transactionExists(transactions []Transaction, txHash string) 
 	return false
 }
 
-func (s *MyParser) Loop(ctx context.Context, endpoint string, saveFile string) {
+func (s *MyParser) Save() {
+	if s.storage != nil {
+		s.storage.Save(s.subscribedAddresses, s.latestProcessedBlockNumber)
+	}
+}
+
+func (s *MyParser) Loop(ctx context.Context, endpoint string) {
 	ticker := time.NewTicker(10 * time.Second)
 	defer ticker.Stop()
 	for {
 		select {
 		case <-ctx.Done():
 			fmt.Println("Loop stopped, saving data...")
-			s.SaveToFile(saveFile)
+			s.Save()
 			return
 		case <-ticker.C:
 			fmt.Println("Looping")
@@ -166,7 +155,7 @@ func (s *MyParser) Loop(ctx context.Context, endpoint string, saveFile string) {
 					s.latestProcessedBlockNumber = blockNumber
 					s.ProcessBlock(blockNumber, endpoint)
 				}
-				s.SaveToFile(saveFile)
+				s.Save()
 			}
 		}
 	}

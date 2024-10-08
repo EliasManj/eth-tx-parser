@@ -3,7 +3,6 @@ package api
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 	"io"
 	"log"
 	"net/http"
@@ -26,9 +25,8 @@ var (
 func TestMain(m *testing.M) {
 	var err error
 	url := "http://localhost:8545"
-	file := "testdata.json"
 	ctx := context.Background()
-	parser.Init(ctx, url, file)
+	parser.Init(ctx, url, nil)
 	Accounts, err = rpcclient.AnvilGetAccounts(url)
 	if err != nil {
 		log.Fatalf("Error getting accounts: %v", err)
@@ -45,10 +43,6 @@ func TestMain(m *testing.M) {
 	defer Server.Close()
 
 	code := m.Run()
-	err = os.Remove(file)
-	if err != nil {
-		fmt.Printf("Error removing test file: %v\n", err)
-	}
 	os.Exit(code)
 }
 
