@@ -94,7 +94,7 @@ go test ./rpcclient
 go test ./api
 ```
 
-### API endpoints
+## API endpoints
 
 
 **Get Current Block**
@@ -111,7 +111,7 @@ This endpoint is used to subscribe to a specific address.
 ```
 Request Parameters
 
-* address ((string, required)): The address to subscribe to.
+* *address ((string, required))*: The address to subscribe to.
 
 
 **List Subscribed Addresses**
@@ -123,14 +123,14 @@ List all address subscriptions.
 
 **Get Inbound and Outbound transactions**
 
-List all address subscriptions for the specified address.
+List all subscriptions for the specified address.
 ```
 /getTransactions?address=[addres]
 ```
 
 Parameters
 
-* address (string, required): The address for which transactions are to be retrieved.
+* *address (string, required)*: The address for which transactions are to be retrieved.
 
 The response is a JSON array containing transaction details. The schema for the response is as follows:
 
