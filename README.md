@@ -1,4 +1,4 @@
-## Tx Parser
+## Tx Parser Requirements
 
 ### Goal
 Implement Ethereum blockchain parser that will allow to query transactions for subscribed addresses.
@@ -49,6 +49,8 @@ curl -X POST 'https://ethereum-rpc.publicnode.com' --data \
 
 ## Parser parameters
 
+Default RPC url: https://ethereum-rpc.publicnode.com/
+
 Start parser with specific RPC URl 
 ```bash
 go run main.go -url=[rpc url]
@@ -61,7 +63,7 @@ go run main.go -startblock=[block number]
 
 ### Running locally with Anvil
 
-Start Anvil service
+Start [Anvil](https://book.getfoundry.sh/anvil/) service
 ```bash
 anvil
 ```
